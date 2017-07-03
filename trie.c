@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 typedef char** (*divisor_t)(const char *);
 
@@ -31,7 +32,7 @@ typedef struct trie {
 static char** default_divisor(char *s) {
   if (NULL == s) return NULL;
 
-  char **symbols = (char**)malloc(strlen(s) + 1);
+  char **symbols = (char**)malloc(sizeof(char*) * (strlen(s) + 1));
   if (NULL == symbols) return NULL;
 
   size_t i = 0;
@@ -60,6 +61,7 @@ static trie_node_t* trie_node_init(const char *key) {
   }
   strcpy(node->key, key);
   node->childs = NULL;
+  node->leaf = NULL;
   return node;
 }
 
@@ -67,9 +69,11 @@ static trie_node_t* trie_node_init(const char *key) {
  * Creates new trie structure.
  *
  * divisor : function, that devides key to N-gramms and returns NULL-terminated
- *           list of them.
+ *           list of them. If isn't specified, uses default divisor, which
+ *           devides key into characters.
  *
- * ret : pointer to trie structure. Shall be destroyed by trie_destroy(ret).
+ * ret : pointer to trie structure or NULL. Shall be destroyed by
+ *       trie_destroy(ret).
  */
 trie_t* trie_init(divisor_t divisor) {
   trie_t *trie;
@@ -89,6 +93,16 @@ trie_t* trie_init(divisor_t divisor) {
 }
 
 
+/*
+ * Puts pair of key and value into trie.
+ *
+ * trie       : trie created by trie_init()
+ * key        : key in trie, will be splitted by divisor
+ * value      : pointer to value, strored in the trie. Will be copied
+ * val_length : sizeof(value), length in bytes
+ *
+ * ret : 0 if successed
+ */
 int trie_put(trie_t *trie, const char *key, const void *value,
     size_t val_length) {
   if (NULL == trie) return 1;
@@ -100,15 +114,15 @@ int trie_put(trie_t *trie, const char *key, const void *value,
   size_t i = 0;
   while (NULL != splitted[i]) {
     if (NULL == cur->childs) goto create_suffix;
-    trie_node_t *n;
-    for (n = *cur->childs; NULL != n; ++n) {
-      if (!strcmp(n->key, splitted[i])) {
-        cur = n;
+    trie_node_t **n;
+    for (n = cur->childs; NULL != *n; ++n) {
+      if (!strcmp((*n)->key, splitted[i])) {
+        cur = *n;
         ++i;
         break;
       }
     }
-    if (NULL == n) {
+    if (NULL == *n) {
 create_suffix:
       if (NULL == cur->childs) {
         if (NULL ==
@@ -128,19 +142,28 @@ create_suffix:
         }
         trie_node_t **new_childs;
         if (NULL == (new_childs = (trie_node_t**)realloc(cur->childs,
-                (cnt+1)*sizeof(trie_node_t*)))) {
+                (cnt+2)*sizeof(trie_node_t*)))) {
           goto clean_splitted;
         }
         cur->childs = new_childs;
+        cur->childs[cnt+1] = NULL;
         cur = cur->childs[cnt];
       }
       ++i;
     }
   }
-  if (NULL == (cur->leaf = (trie_leaf_t*)malloc(sizeof(trie_leaf_t)))) {
-    goto clean_splitted;
+  if (NULL == cur->leaf) {
+    if (NULL == (cur->leaf = (trie_leaf_t*)malloc(sizeof(trie_leaf_t)))) {
+      goto clean_splitted;
+    }
+  } else {
+    free(cur->leaf->value);
   }
 
+  if (NULL == (cur->leaf->value = (char*)malloc(val_length))) {
+    free(cur->leaf);
+    goto clean_splitted;
+  }
   memcpy(cur->leaf->value, value, val_length);
   cur->leaf->val_length = val_length;
   ret = 0;
@@ -151,13 +174,22 @@ clean_childs:
   cur->childs = NULL;
 
 clean_splitted:
-  for (char *it = splitted[0]; NULL != it; free(it), ++it);
+  for (size_t it = 0; NULL != splitted[it]; free(splitted[it]), ++it);
   free(splitted);
 
   return ret;
 }
 
 
+/*
+ * Retrieves pointer to value from the trie.
+ *
+ * trie : trie created by trie_init()
+ * key  : key of value, used in trie_put()
+ *
+ * ret : constant pointer to value. Recommended to avoid something like
+ *       const_cast<>(ret), copy it instad of modifying.
+ */
 const void* trie_get(trie_t *trie, const char *key) {
   if (NULL == trie || NULL == key) return NULL;
   trie_node_t *cur = trie->root;
@@ -167,22 +199,22 @@ const void* trie_get(trie_t *trie, const char *key) {
   size_t i = 0;
   while (NULL != splitted[i]) {
     if (NULL == cur->childs) goto clean_splitted;
-    trie_node_t *n;
-    for (n = *cur->childs; NULL != n; ++n) {
-      if (!strcmp(n->key, splitted[i])) {
+    trie_node_t **n;
+    for (n = cur->childs; NULL != *n; ++n) {
+      if (!strcmp((*n)->key, splitted[i])) {
         // We've found the part
-        cur = n;
+        cur = *n;
         ++i;
         break;
       }
     }
-    if (NULL == n) goto clean_splitted;
+    if (NULL == *n) goto clean_splitted;
   }
   if (NULL == cur->leaf) goto clean_splitted;
   ret = cur->leaf->value;
 
 clean_splitted:
-  for (char *it = splitted[0]; NULL != it; free(it), ++it);
+  for (size_t it = 0; NULL != splitted[it]; free(splitted[it]), ++it);
   free(splitted);
 
   return ret;
@@ -190,9 +222,9 @@ clean_splitted:
 
 
 /*
- * Destroys trie.
+ * Destroys (deallocates) trie.
  *
- * trie : valid trie_t structure or NULL.
+ * trie : trie created by trie_init()
  */
 void trie_destroy(trie_t *trie) {
   free(trie);
