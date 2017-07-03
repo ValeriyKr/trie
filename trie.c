@@ -94,12 +94,67 @@ int trie_put(trie_t *trie, const char *key, const void *value,
   if (NULL == trie) return 1;
   if (NULL == key) return 1;
 
+  int ret = 1;
   char **splitted = trie->divisor(key);
+  trie_node_t *cur = trie->root;
+  size_t i = 0;
+  while (NULL != splitted[i]) {
+    if (NULL == cur->childs) goto create_suffix;
+    trie_node_t *n;
+    for (n = *cur->childs; NULL != n; ++n) {
+      if (!strcmp(n->key, splitted[i])) {
+        cur = n;
+        ++i;
+        break;
+      }
+    }
+    if (NULL == n) {
+create_suffix:
+      if (NULL == cur->childs) {
+        if (NULL ==
+            (cur->childs = (trie_node_t**)(malloc(2*sizeof(trie_node_t*))))) {
+          goto clean_splitted;
+        }
+        cur->childs[1] = NULL;
+        if (NULL == (cur->childs[0] = trie_node_init(splitted[i]))) {
+          goto clean_childs;
+        }
+        cur = cur->childs[0];
+      } else {
+        size_t cnt = 0;
+        for (cnt = 0; cur->childs[++cnt];);
+        if (NULL == (cur->childs[cnt] = trie_node_init(splitted[i]))) {
+          goto clean_splitted;
+        }
+        trie_node_t **new_childs;
+        if (NULL == (new_childs = (trie_node_t**)realloc(cur->childs,
+                (cnt+1)*sizeof(trie_node_t*)))) {
+          goto clean_splitted;
+        }
+        cur->childs = new_childs;
+        cur = cur->childs[cnt];
+      }
+      ++i;
+    }
+  }
+  if (NULL == (cur->leaf = (trie_leaf_t*)malloc(sizeof(trie_leaf_t)))) {
+    goto clean_splitted;
+  }
 
-  (void) splitted;
-  (void) value;
-  (void) val_length;
-  return 1;
+  memcpy(cur->leaf->value, value, val_length);
+  cur->leaf->val_length = val_length;
+  ret = 0;
+  goto clean_splitted;
+
+clean_childs:
+  free(cur->childs);
+  cur->childs = NULL;
+
+clean_splitted:
+  for (char *it = splitted[0]; NULL != it; free(it), ++it);
+  free(splitted);
+
+  return ret;
 }
 
 
@@ -127,7 +182,7 @@ const void* trie_get(trie_t *trie, const char *key) {
   ret = cur->leaf->value;
 
 clean_splitted:
-  for (char *i = splitted[0]; NULL != i; free(i), ++i);
+  for (char *it = splitted[0]; NULL != it; free(it), ++it);
   free(splitted);
 
   return ret;

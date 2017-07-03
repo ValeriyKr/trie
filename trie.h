@@ -1,7 +1,7 @@
 // vim: sw=2 ts=2 et :
 
-#ifndef _TRIE_H_
-#define _TRIE_H_
+#ifndef TRIE_H_
+#define TRIE_H_
 
 #include <stdlib.h>
 
@@ -18,4 +18,4 @@ int trie_put(trie_t *trie, const char *key, const void* value,
 const void* trie_get(trie_t *trie, const char *key);
 void trie_destroy(trie_t *trie);
 
-#endif /* _TRIE_H_ */
+#endif /* TRIE_H_ */
