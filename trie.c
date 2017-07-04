@@ -6,7 +6,7 @@
 
 typedef char** (*divisor_t)(const char *);
 
-// Structure for containing data
+// Structure for containing data, inserted by user
 typedef struct trie_leaf {
   size_t val_length; // size of user data
   void *value;       // pointer to user data
@@ -123,7 +123,7 @@ int trie_put(trie_t *trie, const char *key, const void *value,
     // Otherwise, look for suitable child.
     trie_node_t **n;
     for (n = cur->childs; NULL != *n; ++n) {
-      // TODO: implemet binary search.
+      // TODO: implement binary search.
       if (!strcmp((*n)->key, splitted[i])) {
         // We've found the child, lets make *cur to point onto it, thus we will
         // work with cur->childs[n]->childs during next iteration of outer
@@ -133,8 +133,8 @@ int trie_put(trie_t *trie, const char *key, const void *value,
         break;
       }
     }
-    // n was initialized by one of children of current node, thus if it is NULL,
-    // we've iterated out of the bound and we shall to create new child.
+    // "n" was initialized by one of children of current node, thus if it is
+    // NULL, we've iterated out of the bound and we shall to create new child.
     if (NULL == *n) {
       // Or we just jumped here because of lack of children.
 create_suffix:
