@@ -109,40 +109,58 @@ int trie_put(trie_t *trie, const char *key, const void *value,
   if (NULL == key) return 1;
 
   int ret = 1;
+  // Use given (or default) splitting function to divide key into pieces
   char **splitted = trie->divisor(key);
+  // Going down by the tree. It could be done recursively, but makes lack of
+  // performance.
   trie_node_t *cur = trie->root;
   size_t i = 0;
+  // Iterate by parts of key until all parts put onto their places
   while (NULL != splitted[i]) {
+    // If this node wasn't used as an intermediate node in a path to values,
+    // trying to create new path.
     if (NULL == cur->childs) goto create_suffix;
+    // Otherwise, look for suitable child.
     trie_node_t **n;
     for (n = cur->childs; NULL != *n; ++n) {
+      // TODO: implemet binary search.
       if (!strcmp((*n)->key, splitted[i])) {
+        // We've found the child, lets make *cur to point onto it, thus we will
+        // work with cur->childs[n]->childs during next iteration of outer
+        // loop.
         cur = *n;
         ++i;
         break;
       }
     }
+    // n was initialized by one of children of current node, thus if it is NULL,
+    // we've iterated out of the bound and we shall to create new child.
     if (NULL == *n) {
+      // Or we just jumped here because of lack of children.
 create_suffix:
+      // Node wasn't used as an intermediate node in pathways to values.
       if (NULL == cur->childs) {
         if (NULL ==
             (cur->childs = (trie_node_t**)(malloc(2*sizeof(trie_node_t*))))) {
           goto clean_splitted;
         }
+        // It is *NULL-terminated* array of pointers to trie_node.
         cur->childs[1] = NULL;
         if (NULL == (cur->childs[0] = trie_node_init(splitted[i]))) {
           goto clean_childs;
         }
         cur = cur->childs[0];
-      } else {
+      } else { // Node is intermediate, just make new child.
         size_t cnt = 0;
+        // TODO: make it sorted to get opportunity use binary search in the
+        // code above.
         for (cnt = 0; cur->childs[++cnt];);
         if (NULL == (cur->childs[cnt] = trie_node_init(splitted[i]))) {
           goto clean_splitted;
         }
         trie_node_t **new_childs;
         if (NULL == (new_childs = (trie_node_t**)realloc(cur->childs,
-                (cnt+2)*sizeof(trie_node_t*)))) {
+                sizeof(trie_node_t*) * (cnt + 2)))) {
           goto clean_splitted;
         }
         cur->childs = new_childs;
@@ -152,11 +170,12 @@ create_suffix:
       ++i;
     }
   }
-  if (NULL == cur->leaf) {
+  // Node is found and prepared for new child insertion.
+  if (NULL == cur->leaf) { // New child
     if (NULL == (cur->leaf = (trie_leaf_t*)malloc(sizeof(trie_leaf_t)))) {
       goto clean_splitted;
     }
-  } else {
+  } else { // Node is already in use, overwrite.
     free(cur->leaf->value);
   }
 
@@ -191,6 +210,8 @@ clean_splitted:
  *       const_cast<>(ret), copy it instad of modifying.
  */
 const void* trie_get(trie_t *trie, const char *key) {
+  // Tree traversal algorithm is very similar to algorithm in trie_put() above.
+  // read comments to that function to get the awareness.
   if (NULL == trie || NULL == key) return NULL;
   trie_node_t *cur = trie->root;
   char **splitted = trie->divisor(key);
