@@ -221,11 +221,35 @@ clean_splitted:
 }
 
 
+static void trie_node_destroy(trie_node_t *n) {
+  if (NULL == n) return;
+  if (NULL == n->childs) goto clean_leaf;
+
+  for (trie_node_t **cur = n->childs; NULL != *cur; ++cur) {
+    trie_node_destroy(*cur);
+  }
+  free(n->childs);
+
+clean_leaf:
+  if (NULL == n->leaf) goto clean_n;
+  if (NULL != n->leaf->value)
+    free(n->leaf->value);
+  free(n->leaf);
+
+clean_n:
+  free(n);
+}
+
+
 /*
  * Destroys (deallocates) trie.
  *
  * trie : trie created by trie_init()
  */
 void trie_destroy(trie_t *trie) {
+  if (NULL == trie) return;
+
+  trie_node_destroy(trie->root);
+
   free(trie);
 }
