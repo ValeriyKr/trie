@@ -46,7 +46,7 @@ int trie_put(trie_t *trie, const char *key, const void* value,
  * ret : constant pointer to value. Recommended to avoid something like
  *       const_cast<>(ret), copy it instad of modifying.
  */
-const void* trie_get(trie_t *trie, const char *key);
+const void* trie_get(const trie_t *trie, const char *key);
 
 /*
  * Destroys (deallocates) trie.
@@ -54,5 +54,14 @@ const void* trie_get(trie_t *trie, const char *key);
  * trie : trie created by trie_init()
  */
 void trie_destroy(trie_t *trie);
+
+#ifdef TRIE_DEBUG
+/*
+ * Outputs dump of trie data.
+ *
+ * trie : trie to dump
+ */
+void trie_dump(const trie_t *trie);
+#endif /* TRIE_DEBUG */
 
 #endif /* TRIE_H_ */
