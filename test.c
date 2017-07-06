@@ -13,12 +13,12 @@
 
 #define FAIL sayln("%s", "[FAIL]"); exit(13);
 
-#define puti(t, key, val)                    \
-  say("Putting %s=%d: ", key, val);          \
-  if (trie_put(t, key, &val, sizeof(val))) { \
-    FAIL;                                    \
-  }                                          \
-  OK;                                        \
+#define puti(t, key, val)                          \
+  say("Putting %s=%d: ", key, val);                \
+  if (trie_put(t, key, &val, sizeof(val), NULL)) { \
+    FAIL;                                          \
+  }                                                \
+  OK;                                              \
 
 #define geti(t, key, val)                         \
   do {                                            \
@@ -33,12 +33,12 @@
     OK;                                           \
   } while (0);
 
-#define putst(t, key, val)                   \
-  say("Putting %s=%lu: ", key, val);         \
-  if (trie_put(t, key, &val, sizeof(val))) { \
-    FAIL;                                    \
-  }                                          \
-  OK;                                        \
+#define putst(t, key, val)                         \
+  say("Putting %s=%lu: ", key, val);               \
+  if (trie_put(t, key, &val, sizeof(val), NULL)) { \
+    FAIL;                                          \
+  }                                                \
+  OK;                                              \
 
 #define getst(t, key, val)                             \
   do {                                                 \

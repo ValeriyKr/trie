@@ -5,11 +5,15 @@
 #include <stdio.h>
 
 typedef char** (*divisor_t)(const char *);
+typedef void (*destructor_t)(void *);
+
+const destructor_t default_destructor = free;
 
 // Structure for containing data, inserted by user
 typedef struct trie_leaf {
   size_t val_length; // size of user data
   void *value;       // pointer to user data
+  destructor_t free; // destructor for user data
 } trie_leaf_t;
 
 typedef struct trie_node {
@@ -104,7 +108,7 @@ trie_t* trie_init(divisor_t divisor) {
  * ret : 0 if successed
  */
 int trie_put(trie_t *trie, const char *key, const void *value,
-    size_t val_length) {
+    size_t val_length, destructor_t destructor) {
   if (NULL == trie) return 1;
   if (NULL == key) return 1;
 
@@ -176,7 +180,7 @@ create_suffix:
       goto clean_splitted;
     }
   } else { // Node is already in use, overwrite.
-    free(cur->leaf->value);
+    cur->leaf->free(cur->leaf->value);
   }
 
   if (NULL == (cur->leaf->value = (char*)malloc(val_length))) {
@@ -185,6 +189,7 @@ create_suffix:
   }
   memcpy(cur->leaf->value, value, val_length);
   cur->leaf->val_length = val_length;
+  cur->leaf->free = destructor == NULL ? free : destructor;
   ret = 0;
   goto clean_splitted;
 
@@ -254,7 +259,7 @@ static void trie_node_destroy(trie_node_t *n) {
 clean_leaf:
   if (NULL == n->leaf) goto clean_n;
   if (NULL != n->leaf->value)
-    free(n->leaf->value);
+    n->leaf->free(n->leaf->value);
   free(n->leaf);
 
 clean_n:
