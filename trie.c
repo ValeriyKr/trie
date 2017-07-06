@@ -4,6 +4,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef TRIE_DEBUG
+
+#define DBGF(fmt, ...) fprintf(stderr, "\nTRIE: " fmt "\n", __VA_ARGS__)
+#define DBG(s) DBGF("%s", s)
+
+#else /* TRIE_DEBUG */
+
+#define DBGF(fmt, ...) (void)fmt;
+#define DBG(s) (void)s;
+
+#endif /* TRIE_DEBUG */
+
 typedef char** (*divisor_t)(const char *);
 typedef void (*destructor_t)(void *);
 
@@ -25,6 +37,11 @@ typedef struct trie_node {
 typedef struct trie {
   divisor_t divisor; // function for splitting keys
   trie_node_t *root; // root node of trie
+
+#ifdef TRIE_DEBUG
+  size_t depth;      // Current depth of trie
+  size_t max_key_len;// Maximum length of inserted key part
+#endif /* TRIE_DEBUG */
 } trie_t;
 
 #define TRIE_IMPL
@@ -112,15 +129,32 @@ int trie_put(trie_t *trie, const char *key, const void *value,
   if (NULL == trie) return 1;
   if (NULL == key) return 1;
 
+#if defined(TRIE_PUT_DEBUG) || defined(TRIE_FULL_DEBUG)
+  DBGF("trie_put, key=%s", key);
+#endif /* TRIE_PUT_DEBUG || TRIE_FULL_DEBUG */
+
   int ret = 1;
   // Use given (or default) splitting function to divide key into pieces
   char **splitted = trie->divisor(key);
+
+#if defined(TRIE_PUT_DEBUG) || defined(TRIE_FULL_DEBUG)
+  DBG("Key was splitted into:");
+  for (size_t i = 0; splitted[i]; ++i) {
+    DBGF("\t%s", splitted[i]);
+  }
+#endif /* TRIE_PUT_DEBUG || TRIE_FULL_DEBUG */
+
   // Going down by the tree. It could be done recursively, but makes lack of
   // performance.
   trie_node_t *cur = trie->root;
   size_t i = 0;
   // Iterate by parts of key until all parts put onto their places
   while (NULL != splitted[i]) {
+#ifdef TRIE_DEBUG
+    size_t new_max_len = strlen(splitted[i]);
+    if (new_max_len > trie->max_key_len) trie->max_key_len = new_max_len;
+#endif
+
     // If this node wasn't used as an intermediate node in a path to values,
     // trying to create new path.
     if (NULL == cur->childs) goto create_suffix;
@@ -279,3 +313,54 @@ void trie_destroy(trie_t *trie) {
 
   free(trie);
 }
+
+#ifdef TRIE_DEBUG
+
+static int nl = 1;
+
+static void trie_explore(const trie_t *t, const trie_node_t *n, int depth) {
+  if (NULL == n) return;
+  if (NULL == n->key) {
+    DBG("key is corrupted here");
+    return;
+  }
+  if (nl) {
+    for (size_t i = 0; i < depth; ++i) {
+      for (size_t j = 0; j < t->max_key_len + 10; ++j) {
+        fputs(" ", stderr);
+      }
+    }
+  }
+  nl = 0;
+  fprintf(stderr, " : %s ", n->key);
+  fputs(n->leaf ? "[leaf]" : "[empt]", stderr);
+  for (size_t i = 0; i < t->max_key_len - strlen(n->key); ++i) {
+    fputs(" ", stderr);
+  }
+  if (NULL == n->childs) {
+    nl = 1;
+    fputs("\n", stderr);
+    return;
+  }
+  for (size_t i = 0; n->childs[i]; ++i) {
+    trie_explore(t, n->childs[i], depth + 1);
+  }
+}
+
+
+/*
+ * Outputs dump of trie data.
+ *
+ * trie : trie to dump
+ */
+void trie_dump(const trie_t *trie) {
+  fputs("\n", stderr);
+  if (NULL == trie) {
+    DBG("[NULL]");
+    return;
+  }
+  DBG("Not null, printing all pathways");
+  trie_explore(trie, trie->root, 1);
+}
+
+#endif /* TRIE_DEBUG */

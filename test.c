@@ -65,6 +65,11 @@ static void test1() {
   size_t val5 = 2;
   putst(t, key5, val5);
   getst(t, key5, val5);
+#if defined(TRIE_DEBUG) && defined(DEBUG_TEST1)
+  trie_dump(NULL);
+  trie_dump(t);
+  (void)getchar();
+#endif
   int val = 888;
   char key[] = "fstv";
   int val2 = 13;
@@ -75,12 +80,20 @@ static void test1() {
   char key4[] = "aaa";
   puti(t, key, val);
   geti(t, key, val);
+#if defined(TRIE_DEBUG) && defined(DEBUG_TEST1)
+  trie_dump(t);
+  (void)getchar();
+#endif
   puti(t, key2, val2);
   geti(t, key2, val2);
   puti(t, key3, val3);
   geti(t, key3, val3);
   putst(t, key4, val4);
   getst(t, key4, val4);
+#if defined(TRIE_DEBUG) && defined(DEBUG_TEST1)
+  trie_dump(t);
+  (void)getchar();
+#endif
 
   puti(t, key, val);
   geti(t, key, val);
@@ -138,6 +151,10 @@ static void test1() {
   geti(t, key3, val3);
   geti(t, key2, val2);
   geti(t, key, val);
+#if defined(TRIE_DEBUG) && defined(DEBUG_TEST1)
+  trie_dump(t);
+  (void)getchar();
+#endif
 
   sayln("%s", "Big data");
   const size_t tests_cnt = 150;
@@ -164,6 +181,10 @@ static void test1() {
     for (size_t j = 0; j < i; ++j) {
       putst(t, keys[j], vals[j]);
       getst(t, keys[j], vals[j]);
+#if defined(TRIE_DEBUG) && defined(DEBUG_TEST1)
+      trie_dump(t);
+      (void)getchar();
+#endif
     }
   }
 
@@ -182,6 +203,10 @@ static void test1() {
     }
     putst(t, ln, i);
     getst(t, ln, i);
+#if defined(TRIE_DEBUG) && defined(DEBUG_TEST1)
+    trie_dump(t);
+    (void)getchar();
+#endif
   }
 
   trie_destroy(t);
@@ -234,6 +259,11 @@ static void test2() {
   size_t val5 = 2;
   putst(t, key5, val5);
   getst(t, key5, val5);
+#if defined(TRIE_DEBUG) && defined(DEBUG_TEST2)
+  trie_dump(NULL);
+  trie_dump(t);
+  (void)getchar();
+#endif
   int val = 888;
   char key[] = "fstv";
   int val2 = 13;
@@ -244,12 +274,20 @@ static void test2() {
   char key4[] = "aaa";
   puti(t, key, val);
   geti(t, key, val);
+#if defined(TRIE_DEBUG) && defined(DEBUG_TEST2)
+  trie_dump(t);
+  (void)getchar();
+#endif
   puti(t, key2, val2);
   geti(t, key2, val2);
   puti(t, key3, val3);
   geti(t, key3, val3);
   putst(t, key4, val4);
   getst(t, key4, val4);
+#if defined(TRIE_DEBUG) && defined(DEBUG_TEST2)
+  trie_dump(t);
+  (void)getchar();
+#endif
 
   puti(t, key, val);
   geti(t, key, val);
@@ -307,6 +345,10 @@ static void test2() {
   geti(t, key3, val3);
   geti(t, key2, val2);
   geti(t, key, val);
+#if defined(TRIE_DEBUG) && defined(DEBUG_TEST2)
+  trie_dump(t);
+  (void)getchar();
+#endif
 
   sayln("%s", "Big data");
   const size_t tests_cnt = 150;
@@ -333,6 +375,10 @@ static void test2() {
     for (size_t j = 0; j < i; ++j) {
       putst(t, keys[j], vals[j]);
       getst(t, keys[j], vals[j]);
+#if defined(TRIE_DEBUG) && defined(DEBUG_TEST2)
+      trie_dump(t);
+      (void)getchar();
+#endif
     }
   }
 
@@ -351,6 +397,10 @@ static void test2() {
     }
     putst(t, ln, i);
     getst(t, ln, i);
+#if defined(TRIE_DEBUG) && defined(DEBUG_TEST2)
+    trie_dump(t);
+    (void)getchar();
+#endif
   }
 
   trie_destroy(t);

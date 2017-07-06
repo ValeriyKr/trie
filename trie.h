@@ -59,4 +59,13 @@ const void* trie_get(const trie_t *trie, const char *key);
  */
 void trie_destroy(trie_t *trie);
 
+#ifdef TRIE_DEBUG
+/*
+ * Outputs dump of trie data.
+ *
+ * trie : trie to dump
+ */
+void trie_dump(const trie_t *trie);
+#endif /* TRIE_DEBUG */
+
 #endif /* TRIE_H_ */
