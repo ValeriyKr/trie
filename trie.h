@@ -9,6 +9,7 @@
 struct trie;
 typedef struct trie trie_t;
 typedef char** (*divisor_t)(const char *);
+typedef void (*destructor_t)(void *);
 #endif
 
 
@@ -31,11 +32,13 @@ trie_t* trie_init(divisor_t divisor);
  * key        : key in trie, will be splitted by divisor
  * value      : pointer to value, strored in the trie. Will be copied
  * val_length : sizeof(value), length in bytes
+ * destructor : function, which deallocates user data when it should be
+ *              destroyed. If NULL is passed, free() will be used.
  *
  * ret : 0 if successed
  */
 int trie_put(trie_t *trie, const char *key, const void* value,
-    size_t val_length);
+    size_t val_length, destructor_t destructor);
 
 /*
  * Retrieves pointer to value from the trie.
@@ -44,7 +47,8 @@ int trie_put(trie_t *trie, const char *key, const void* value,
  * key  : key of value, used in trie_put()
  *
  * ret : constant pointer to value. Recommended to avoid something like
- *       const_cast<>(ret), copy it instad of modifying.
+ *       const_cast<>(ret), copy it instad of modifying. If there is no
+ *       corresponding to key value, NULL will be returned.
  */
 const void* trie_get(const trie_t *trie, const char *key);
 
