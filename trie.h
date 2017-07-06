@@ -44,9 +44,10 @@ int trie_put(trie_t *trie, const char *key, const void* value,
  * key  : key of value, used in trie_put()
  *
  * ret : constant pointer to value. Recommended to avoid something like
- *       const_cast<>(ret), copy it instad of modifying.
+ *       const_cast<>(ret), copy it instad of modifying. If there is no
+ *       corresponding to key value, NULL will be returned.
  */
-const void* trie_get(trie_t *trie, const char *key);
+const void* trie_get(const trie_t *trie, const char *key);
 
 /*
  * Destroys (deallocates) trie.
