@@ -71,7 +71,7 @@ static char** default_divisor(char *s) {
 static trie_node_t* trie_node_init(const char *key) {
   trie_node_t *node = (trie_node_t*)malloc(sizeof(trie_node_t));
   if (NULL == node) return NULL;
-  node->key = (char*)malloc(strlen(key));
+  node->key = (char*)malloc(strlen(key) + 1);
   if (NULL == node->key) {
     free(node);
     return NULL;
