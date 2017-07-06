@@ -209,7 +209,7 @@ clean_splitted:
  * ret : constant pointer to value. Recommended to avoid something like
  *       const_cast<>(ret), copy it instad of modifying.
  */
-const void* trie_get(trie_t *trie, const char *key) {
+const void* trie_get(const trie_t *trie, const char *key) {
   // Tree traversal algorithm is very similar to algorithm in trie_put() above.
   // read comments to that function to get the awareness.
   if (NULL == trie || NULL == key) return NULL;
