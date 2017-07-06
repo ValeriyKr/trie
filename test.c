@@ -7,11 +7,11 @@
 #include "trie.h"
 
 #define say(fmt, ...) fprintf(stderr, fmt, __VA_ARGS__)
-#define sayn(fmt, ...) fprintf(stderr, fmt "\n", __VA_ARGS__)
+#define sayln(fmt, ...) fprintf(stderr, fmt "\n", __VA_ARGS__)
 
-#define OK sayn("%s", "[ OK ]");
+#define OK sayln("%s", "[ OK ]");
 
-#define FAIL sayn("%s", "[FAIL]"); exit(0);
+#define FAIL sayln("%s", "[FAIL]"); exit(13);
 
 #define puti(t, key, val)                    \
   say("Putting %s=%d: ", key, val);          \
@@ -57,7 +57,7 @@
 
 
 static void test1() {
-  sayn("%s", "Starting tests 1");
+  sayln("%s", "Starting tests 1");
   
   trie_t *t = trie_init(NULL);
 
@@ -139,7 +139,7 @@ static void test1() {
   geti(t, key2, val2);
   geti(t, key, val);
 
-  sayn("%s", "Big data");
+  sayln("%s", "Big data");
   const size_t tests_cnt = 150;
   char **keys = (char**)malloc(sizeof(char*) * tests_cnt);
   keys[0] = (char*)malloc(tests_cnt+1);
@@ -167,7 +167,7 @@ static void test1() {
     }
   }
 
-  sayn("%s", "Long lines");
+  sayln("%s", "Long lines");
   const size_t ln_len = 16384;
   char *ln = (char*)malloc(ln_len);
   for (size_t i = 0; i < ln_len; ln[i++] = 'a');
@@ -226,7 +226,7 @@ end:
 
 
 static void test2() {
-  sayn("%s", "Starting tests 2");
+  sayln("%s", "Starting tests 2");
 
   trie_t *t = trie_init(custom_divisor);
 
@@ -308,7 +308,7 @@ static void test2() {
   geti(t, key2, val2);
   geti(t, key, val);
 
-  sayn("%s", "Big data");
+  sayln("%s", "Big data");
   const size_t tests_cnt = 150;
   char **keys = (char**)malloc(sizeof(char*) * tests_cnt);
   keys[0] = (char*)malloc(tests_cnt+1);
@@ -336,7 +336,7 @@ static void test2() {
     }
   }
 
-  sayn("%s", "Long lines");
+  sayln("%s", "Long lines");
   const size_t ln_len = 16384;
   char *ln = (char*)malloc(ln_len);
   for (size_t i = 0; i < ln_len; ln[i++] = 'a');
